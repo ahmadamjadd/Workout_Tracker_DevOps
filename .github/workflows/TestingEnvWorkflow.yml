@@ -1,0 +1,69 @@
+name: Deploying to Testing Stage
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test_and_analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Analysis and Tests
+        run: |
+          pip install flake8 pytest -r backend/requirements.txt
+          cd backend
+          flake8 .
+          pytest
+
+      - name: Notify Dev on Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_PASSWORD }}
+          subject: "Workflow Failed: ${{ github.repository }}"
+          to: muhammadahmadamjad90800@gmail.com
+          from: GitHub Actions
+          body: |
+            The workflow failed during the testing phase. 
+            Check the logs here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  deploy_to_testing:
+    needs: test_and_analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: 15.207.119.207
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/app/Workout_Tracker_DevOps
+            git pull origin main
+            pm2 restart all
+
+      - name: Notify QA on Success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_PASSWORD }}
+          subject: "Deployment Successful: ${{ github.repository }}"
+          to: muhammadahmadamjad90800@gmail.com
+          from: GitHub Actions
+          body: |
+            The project has been successfully deployed to the Testing environment.
+            You can access it here: http://15.207.119.207:5173
+        
+             
+
+
