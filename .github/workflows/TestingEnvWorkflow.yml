@@ -7,63 +7,149 @@ on:
   workflow_dispatch:
 
 jobs:
-  test_and_analyze:
+  # ==========================================
+  # 1. FRONTEND TESTING
+  # ==========================================
+  frontend_tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Run Analysis and Tests
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' 
+      - name: Install and Test Frontend
+        working-directory: ./frontend
         run: |
-          pip install flake8 pytest -r backend/requirements.txt
-          cd backend
+          npm ci
+          npm run lint
+          npm run test
+
+  # ==========================================
+  # 2. BACKEND TESTING
+  # ==========================================
+  backend_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # Adjust if you use a different version
+      - name: Install and Test Backend
+        working-directory: ./backend
+        run: |
+          pip install flake8 pytest -r requirements.txt
           flake8 .
           pytest
 
+  # ==========================================
+  # 3. NOTIFY DEV ON FAILURE
+  # ==========================================
+  notify_dev_failure:
+    needs: [frontend_tests, backend_tests]
+    if: failure() # Triggers if EITHER test job fails
+    runs-on: ubuntu-latest
+    steps:
       - name: Notify Dev on Failure
-        if: failure()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 465
           username: ${{ secrets.GMAIL_USER }}
           password: ${{ secrets.GMAIL_PASSWORD }}
-          subject: "Workflow Failed: ${{ github.repository }}"
+          subject: "❌ Workflow Failed: ${{ github.repository }}"
           to: muhammadahmadamjad90800@gmail.com
           from: GitHub Actions
           body: |
-            The workflow failed during the testing phase. 
+            The workflow failed during the testing phase (either Frontend or Backend).
             Check the logs here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-  deploy_to_testing:
-    needs: test_and_analyze
+  # ==========================================
+  # 4. BUILD FRONTEND ARTIFACT
+  # ==========================================
+  build_frontend:
+    needs: [frontend_tests, backend_tests]
     runs-on: ubuntu-latest
     steps:
-      - name: SSH and Deploy
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Build React App
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-build
+          path: ./frontend/dist/ # Change to ./frontend/build/ if using Create React App
+
+  # ==========================================
+  # 5. DEPLOY FRONTEND & BACKEND
+  # ==========================================
+  deploy:
+    needs: build_frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Frontend Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: react-build
+          path: ./react-build
+
+      - name: Upload Frontend to EC2 (Temporary Folder)
+        uses: appleboy/scp-action@master
+        with:
+          host: 15.207.119.207
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "./react-build/*"
+          target: "/tmp/frontend" # Safest way to upload before using sudo
+
+      - name: SSH, Deploy Frontend to Apache, Update Backend
         uses: appleboy/ssh-action@master
         with:
           host: 15.207.119.207
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # --- Deploy Frontend ---
+            echo "Deploying Frontend to Apache..."
+            sudo rm -rf /var/www/html/*
+            sudo cp -r /tmp/frontend/react-build/* /var/www/html/
+            sudo rm -rf /tmp/frontend
+            
+            # --- Deploy Backend ---
+            echo "Deploying Backend..."
             cd ~/app/Workout_Tracker_DevOps
-            git pull origin main
+            git fetch origin
+            git checkout ${{ github.head_ref || github.ref_name }}
+            git pull origin ${{ github.head_ref || github.ref_name }}
+            
+            # Restart PM2
             pm2 restart all
 
+  # ==========================================
+  # 6. NOTIFY QA ON SUCCESS
+  # ==========================================
+  notify_qa_success:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
       - name: Notify QA on Success
-        if: success()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 465
           username: ${{ secrets.GMAIL_USER }}
           password: ${{ secrets.GMAIL_PASSWORD }}
-          subject: "Deployment Successful: ${{ github.repository }}"
+          subject: "✅ Deployment Successful: ${{ github.repository }}"
           to: muhammadahmadamjad90800@gmail.com
           from: GitHub Actions
           body: |
-            The project has been successfully deployed to the Testing environment.
-            You can access it here: http://15.207.119.207:5173
-        
-             
-
-
+            The project has been successfully built, tested, and deployed to the Testing environment.
+            You can access the frontend here: http://15.207.119.207
