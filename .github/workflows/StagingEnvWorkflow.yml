@@ -51,7 +51,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.STAGING_EC2_KEY }}
           script: |
-            sudo cp -r /tmp/frontend/* /var/www/html/
+            sudo rm -rf /var/www/html/*
+            sudo cp -r /tmp/frontend/react-build/* /var/www/html/
             cd /app/Workout_Tracker_DevOps
             git fetch origin
             git reset --hard origin/main
