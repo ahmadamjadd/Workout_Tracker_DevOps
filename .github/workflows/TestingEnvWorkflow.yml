@@ -32,10 +32,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10' # Adjust if you use a different version
       - name: Install and Test Backend
         working-directory: ./backend
         run: |
