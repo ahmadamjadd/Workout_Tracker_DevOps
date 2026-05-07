@@ -4,11 +4,7 @@ import axios from 'axios';
 import './App.css';
 
 function App() {
-  // --- 1. State Management ---
-  // This stores the list of workouts fetched from the backend
   const [workouts, setWorkouts] = useState([]);
-  
-  // This temporarily holds the data being typed into the form
   const [formData, setFormData] = useState({
     exercise_name: '',
     sets: '',
@@ -16,11 +12,9 @@ function App() {
     weight: ''
   });
 
-  // The URL of your FastAPI backend
-  // The URL is now dynamic based on the environment!
-  const API_URL = import.meta.env.VITE_API_URL;;
+  // Dynamically uses your EC2 IP from GitHub Actions, or localhost if you are on your laptop
+  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/workouts/';
 
-  // --- 2. Fetch Data from Backend ---
   const fetchWorkouts = async () => {
     try {
       const response = await axios.get(API_URL);
@@ -30,15 +24,10 @@ function App() {
     }
   };
 
-  // useEffect runs the fetchWorkouts function once when the page loads
-  // useEffect runs the fetchWorkouts function once when the page loads
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     fetchWorkouts();
   }, []);
 
-  // --- 3. Handle Form Interactions ---
-  // Updates the formData state whenever a user types in an input box
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setFormData({
@@ -47,24 +36,21 @@ function App() {
     });
   };
 
-  // Sends the form data to the backend when the user clicks "Log Workout"
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevents the page from refreshing
+    event.preventDefault();
     try {
       await axios.post(API_URL, formData);
-      setFormData({ exercise_name: '', sets: '', reps: '', weight: '' }); // Clear form
-      fetchWorkouts(); // Refresh the list to show the new workout
+      setFormData({ exercise_name: '', sets: '', reps: '', weight: '' });
+      fetchWorkouts();
     } catch (error) {
       console.error("Error saving workout:", error);
     }
   };
 
-  // --- 4. The User Interface (HTML/JSX) ---
   return (
     <div className="container">
       <h1>🏋️ Minimalist Workout Tracker</h1>
 
-      {/* The Input Form */}
       <div className="card">
         <h2>Log a New Workout</h2>
         <form onSubmit={handleSubmit} className="workout-form">
@@ -88,7 +74,6 @@ function App() {
         </form>
       </div>
 
-      {/* The History Table */}
       <div className="card">
         <h2>Workout History</h2>
         {workouts.length === 0 ? (
