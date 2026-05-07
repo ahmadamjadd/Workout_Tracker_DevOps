@@ -43,7 +43,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.STAGING_EC2_KEY }}
           source: "./react-build/*"
-          destination: "/tmp/frontend"
+          target: "/tmp/frontend"
       - name: deploying
         uses: appleboy/ssh-action@v1
         with:
