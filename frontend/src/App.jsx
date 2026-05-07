@@ -29,7 +29,9 @@ function App() {
   };
 
   // useEffect runs the fetchWorkouts function once when the page loads
+  // useEffect runs the fetchWorkouts function once when the page loads
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     fetchWorkouts();
   }, []);
 
