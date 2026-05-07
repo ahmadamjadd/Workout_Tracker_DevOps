@@ -82,6 +82,8 @@ jobs:
         run: |
           npm ci
           npm run build
+        env: 
+          VITE_API_URL: http://15.207.119.207:8000/workouts/
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:

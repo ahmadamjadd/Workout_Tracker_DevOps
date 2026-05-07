@@ -16,7 +16,8 @@ function App() {
   });
 
   // The URL of your FastAPI backend
-  const API_URL = 'http://127.0.0.1:8000/workouts/';
+  // The URL is now dynamic based on the environment!
+  const API_URL = import.meta.env.VITE_API_URL;;
 
   // --- 2. Fetch Data from Backend ---
   const fetchWorkouts = async () => {
