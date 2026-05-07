@@ -1,0 +1,95 @@
+name: Deploying to Staging Environment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  Build_Frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Installing Dependencies
+        env:
+          VITE_API_URL: http://13.232.250.61:8000/workouts/
+        run: |
+          cd ./frontend
+          npm install
+          npm run build
+      - name: Uploading Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-build
+          path: ./frontend/dist/
+
+  Deploy_Frontend_and_Backend:
+    needs: Build_Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Downloading Artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: react-build
+          path: ./react-build
+      - name: Scp artifact
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ vars.STAGING_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.STAGING_EC2_KEY }}
+          source: "./react-build/*"
+          destination: "/tmp/frontend"
+      - name: deploying
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ vars.STAGING_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.STAGING_EC2_KEY }}
+          script: |
+            sudo cp -r /tmp/frontend/* /var/www/html/
+            cd /app/Workout_Tracker_DevOps
+            git fetch origin
+            git reset --hard origin/main
+            cd backend
+            pip install -r requirements.txt --break-system-packages
+            pm2 restart fastapi-app
+
+  Notify:
+    needs: [Build_Frontend, Deploy_Frontend_and_Backend] 
+    if: always() 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Dev on Failure
+        if: ${{ needs.Build_Frontend.result == 'failure' || needs.Deploy_Frontend_and_Backend.result == 'failure' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_PASSWORD }}
+          subject: "❌ Staging Deployment Failed"
+          to: muhammadahmadamjad90800@gmail.com
+          from: GitHub Actions
+          body: |
+            The workflow failed during the Staging phase.
+            Check the logs here to see what broke: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Notify QA on Success
+        if: ${{ needs.Build_Frontend.result == 'success' && needs.Deploy_Frontend_and_Backend.result == 'success' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_PASSWORD }}
+          subject: "✅ Staging Deployment Successful"
+          to: muhammadahmadamjad90800@gmail.com
+          from: GitHub Actions
+          body: |
+            The project has been successfully deployed to the Staging environment.
+            You can access the live website here: http://${{ vars.STAGING_EC2_IP }}
