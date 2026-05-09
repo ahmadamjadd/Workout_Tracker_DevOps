@@ -48,61 +48,85 @@ function App() {
   };
 
   return (
-    <div className="container">
-      <h1>🏋️ Minimalist Workout Tracker</h1>
+    <div className="app-container">
+      <header className="app-header">
+        <h1>Workout Tracker</h1>
+      </header>
 
-      <div className="card">
-        <h2>Log a New Workout</h2>
-        <form onSubmit={handleSubmit} className="workout-form">
-          <input 
-            type="text" name="exercise_name" placeholder="Exercise (e.g., Bench Press)" 
-            value={formData.exercise_name} onChange={handleInputChange} required 
-          />
-          <input 
-            type="number" name="sets" placeholder="Sets" 
-            value={formData.sets} onChange={handleInputChange} required 
-          />
-          <input 
-            type="number" name="reps" placeholder="Reps" 
-            value={formData.reps} onChange={handleInputChange} required 
-          />
-          <input 
-            type="number" step="0.1" name="weight" placeholder="Weight (kg/lbs)" 
-            value={formData.weight} onChange={handleInputChange} required 
-          />
-          <button type="submit">Log Workout</button>
-        </form>
-      </div>
+      <main className="main-content">
+        <section className="left-panel">
+          <div className="card">
+            <h2>Log Workout</h2>
+            <form onSubmit={handleSubmit} className="workout-form">
+              <div className="form-group">
+                <label>Exercise Name</label>
+                <input 
+                  type="text" name="exercise_name" placeholder="e.g., Deadlift" 
+                  value={formData.exercise_name} onChange={handleInputChange} required 
+                />
+              </div>
+              <div className="form-group">
+                <label>Sets</label>
+                <input 
+                  type="number" name="sets" placeholder="0" 
+                  value={formData.sets} onChange={handleInputChange} required 
+                />
+              </div>
+              <div className="form-group">
+                <label>Reps</label>
+                <input 
+                  type="number" name="reps" placeholder="0" 
+                  value={formData.reps} onChange={handleInputChange} required 
+                />
+              </div>
+              <div className="form-group">
+                <label>Weight (kg)</label>
+                <input 
+                  type="number" step="0.1" name="weight" placeholder="0.0" 
+                  value={formData.weight} onChange={handleInputChange} required 
+                />
+              </div>
+              <button type="submit">Log Session</button>
+            </form>
+          </div>
+        </section>
 
-      <div className="card">
-        <h2>Workout History</h2>
-        {workouts.length === 0 ? (
-          <p>No workouts logged yet. Get lifting!</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Exercise</th>
-                <th>Sets</th>
-                <th>Reps</th>
-                <th>Weight</th>
-              </tr>
-            </thead>
-            <tbody>
-              {workouts.map((workout) => (
-                <tr key={workout.id}>
-                  <td>{new Date(workout.date).toLocaleDateString()}</td>
-                  <td>{workout.exercise_name}</td>
-                  <td>{workout.sets}</td>
-                  <td>{workout.reps}</td>
-                  <td>{workout.weight}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+        <section className="right-panel">
+          <div className="card">
+            <h2>Workout History</h2>
+            <div className="history-table-container">
+              {workouts.length === 0 ? (
+                <div className="empty-state">
+                  <p>No sessions logged yet. Time to hit the gym!</p>
+                </div>
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Exercise</th>
+                      <th>Sets</th>
+                      <th>Reps</th>
+                      <th>Weight</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {workouts.map((workout) => (
+                      <tr key={workout.id}>
+                        <td>{new Date(workout.date).toLocaleDateString()}</td>
+                        <td className="exercise-cell">{workout.exercise_name}</td>
+                        <td>{workout.sets}</td>
+                        <td>{workout.reps}</td>
+                        <td>{workout.weight} kg</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
