@@ -53,12 +53,12 @@ jobs:
           script: |
             sudo rm -rf /var/www/html/*
             sudo cp -r /tmp/frontend/react-build/* /var/www/html/
-            cd /app/Workout_Tracker_DevOps
+            cd  /home/ubuntu/app/Workout_Tracker_DevOps
             git fetch origin
             git reset --hard origin/main
             cd backend
             pip install -r requirements.txt --break-system-packages
-            pm2 restart fastapi-app
+            pm2 restart all
 
   Notify:
     needs: [Build_Frontend, Deploy_Frontend_and_Backend] 
