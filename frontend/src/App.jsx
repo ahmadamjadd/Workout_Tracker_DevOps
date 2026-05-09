@@ -94,34 +94,34 @@ function App() {
         <section className="right-panel">
           <div className="card">
             <h2>Workout History</h2>
-            <div className="history-table-container">
+            <div className="workout-history-list">
               {workouts.length === 0 ? (
                 <div className="empty-state">
                   <p>No sessions logged yet. Time to hit the gym!</p>
                 </div>
               ) : (
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Exercise</th>
-                      <th>Sets</th>
-                      <th>Reps</th>
-                      <th>Weight</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {workouts.map((workout) => (
-                      <tr key={workout.id}>
-                        <td>{new Date(workout.date).toLocaleDateString()}</td>
-                        <td className="exercise-cell">{workout.exercise_name}</td>
-                        <td>{workout.sets}</td>
-                        <td>{workout.reps}</td>
-                        <td>{workout.weight} kg</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                workouts.map((workout) => (
+                  <div key={workout.id} className="workout-item-card">
+                    <div className="workout-item-header">
+                      <span className="workout-date">{new Date(workout.date).toLocaleDateString()}</span>
+                      <h3 className="workout-name">{workout.exercise_name}</h3>
+                    </div>
+                    <div className="workout-item-details">
+                      <div className="detail-stat">
+                        <span className="label">Sets</span>
+                        <span className="value">{workout.sets}</span>
+                      </div>
+                      <div className="detail-stat">
+                        <span className="label">Reps</span>
+                        <span className="value">{workout.reps}</span>
+                      </div>
+                      <div className="detail-stat">
+                        <span className="label">Weight</span>
+                        <span className="value">{workout.weight} <small>kg</small></span>
+                      </div>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>
