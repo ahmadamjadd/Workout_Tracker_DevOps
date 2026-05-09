@@ -38,9 +38,9 @@
 .card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-premium);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
   transition: var(--transition-smooth);
 }
 
@@ -77,10 +77,10 @@
 
 input {
   background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid #3f3f46; /* Zinc 700 - Subtle gray border */
   color: var(--text-primary);
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   transition: var(--transition-smooth);
 }
@@ -88,25 +88,27 @@ input {
 input:focus {
   outline: none;
   border-color: var(--accent-purple);
-  box-shadow: 0 0 0 2px var(--accent-purple-glow);
+  box-shadow: 0 0 0 4px var(--accent-purple-glow);
 }
 
 button {
   background-color: var(--accent-purple);
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
+  padding: 0.875rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
   transition: var(--transition-smooth);
   margin-top: 0.5rem;
+  box-shadow: 0 4px 14px 0 rgba(168, 85, 247, 0.39);
 }
 
 button:hover {
   background-color: var(--accent-purple-hover);
-  transform: translateY(-1px);
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.45);
 }
 
 button:active {
