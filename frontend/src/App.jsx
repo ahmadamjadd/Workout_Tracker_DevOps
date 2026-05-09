@@ -97,6 +97,7 @@ function App() {
             <div className="workout-history-list">
               {workouts.length === 0 ? (
                 <div className="empty-state">
+                  <div className="empty-state-icon">🏋️‍♂️</div>
                   <p>No sessions logged yet. Time to hit the gym!</p>
                 </div>
               ) : (
