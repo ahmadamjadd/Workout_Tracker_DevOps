@@ -16,7 +16,7 @@ jobs:
           node-version: '22'
       - name: Installing Dependencies
         env:
-          VITE_API_URL: http://13.232.250.61:8000/workouts/
+          VITE_API_URL: http://${{ vars.STAGING_EC2_IP }}:8000/workouts/
         run: |
           cd ./frontend
           npm install

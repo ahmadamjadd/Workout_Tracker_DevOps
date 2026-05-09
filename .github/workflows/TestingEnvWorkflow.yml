@@ -79,7 +79,7 @@ jobs:
           npm ci
           npm run build
         env: 
-          VITE_API_URL: http://15.207.119.207:8000/workouts/
+          VITE_API_URL: http://${{ vars.TESTING_INSTANCE_IP }}:8000/workouts/
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -102,7 +102,7 @@ jobs:
       - name: Upload Frontend to EC2 (Temporary Folder)
         uses: appleboy/scp-action@master
         with:
-          host: 15.207.119.207
+          host: ${{ vars.TESTING_INSTANCE_IP }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "./react-build/*"
@@ -111,7 +111,7 @@ jobs:
       - name: SSH, Deploy Frontend to Apache, Update Backend
         uses: appleboy/ssh-action@master
         with:
-          host: 15.207.119.207
+          host: ${{ vars.TESTING_INSTANCE_IP }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
@@ -150,4 +150,4 @@ jobs:
           from: GitHub Actions
           body: |
             The project has been successfully built, tested, and deployed to the Testing environment.
-            You can access the frontend here: http://15.207.119.207
+            You can access the frontend here: http://${{ vars.TESTING_INSTANCE_IP }}
